@@ -1,2 +1,2 @@
-# CRUD feito com LARAVEL
+# CRUD de Controle de séries e temporadas 
  
