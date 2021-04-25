@@ -20,3 +20,4 @@ Route::get('/', function () {
 
  Route::get('/series', [SeriesController::class,'index']);
 //Route::get('/series', 'SeriesController@listarSeries');
+Route::get('/series/criar', [SeriesController::class,'create']);
