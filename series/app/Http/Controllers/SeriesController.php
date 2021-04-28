@@ -24,15 +24,13 @@ class SeriesController extends Controller
 
     public function store(Request $request)  
     {
-        $nome =  $request->nome;
+      
 
-        $serie = Serie::create([
-            'nome' =>$nome
-        ]);
+       
+    $serie = Serie::create($request->all());
 
-
-        echo "Série Criada com Sucessso id {$serie->id} nome {$serie->nome}";
-
+    echo "Série com id ($serie->id) criada: ($serie->nome)";
+    
     }
 
 }
