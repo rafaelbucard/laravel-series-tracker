@@ -11,14 +11,8 @@ class SeriesController extends Controller
 
     public function index() 
     {
-        $series = [
-            'Dexter',
-            'Breaking Bad',
-            'The Witcher'
-        ];
-
-        
-
+        $series = Serie::all();
+            
         return view('series.index', ['series' =>$series]);
     }
 
@@ -32,13 +26,12 @@ class SeriesController extends Controller
     {
         $nome =  $request->nome;
 
-        $serie = new Serie();
+        $serie = Serie::create([
+            'nome' =>$nome
+        ]);
 
-        $serie->nome = $nome;
 
-        $serie->save();
-
-        return view('series.create');
+        echo "Série Criada com Sucessso id {$serie->id} nome {$serie->nome}";
 
     }
 
