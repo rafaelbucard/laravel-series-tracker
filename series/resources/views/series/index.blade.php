@@ -20,7 +20,7 @@ Séries
         <form  method="post" action="/series/remover/{{$serie->id}}" onsubmit="return confirm('Tem certeza que deseja excluir')">
             @csrf
             @method('DELETE')
-            <button class="btn btn-danger btn-sm">Excluir</button>
+            <button class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
         </form>
         
     </li>

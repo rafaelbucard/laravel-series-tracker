@@ -35,8 +35,7 @@ class SeriesController extends Controller
 
     );
    
-    return redirect('/series');
-    
+    return redirect()->route( route: 'listar_series');
     }
 
     public function destroy(Request $request ,$id) 
@@ -48,7 +47,7 @@ class SeriesController extends Controller
     
         );
        
-        return redirect('/series');
+        return redirect()->route( route: 'listar_series');
         
         
     }
