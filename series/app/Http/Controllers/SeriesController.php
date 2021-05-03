@@ -20,22 +20,21 @@ class SeriesController extends Controller
     public function create() 
     {
         return view('series.create');
-
     }
 
     public function store(Request $request)  
     {
-      
+        $request->validate([
+            'nome'=> 'required'
+        ]);
 
-       
-    $serie = Serie::create($request->all());
-    $request->session()->flash(
-        'mensagem',
-        "Serie {$serie->id} criada com sucesso {$serie->nome}"
+         $serie = Serie::create($request->all());
+         $request->session()->flash(
+            'mensagem',
+            "Serie {$serie->id} criada com sucesso {$serie->nome}"
 
     );
-   
-    return redirect()->route( route: 'listar_series');
+        return redirect()->route( route: 'listar_series');
     }
 
     public function destroy(Request $request ,$id) 
@@ -44,12 +43,8 @@ class SeriesController extends Controller
         $request->session()->flash(
             'mensagem',
             "Serie {$id} Deletada"
-    
         );
-       
         return redirect()->route( route: 'listar_series');
-        
-        
     }
 
 }
