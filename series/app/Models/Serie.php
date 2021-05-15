@@ -10,5 +10,12 @@ class Serie extends Model
     use HasFactory;
     public  $timestamps = false;
     protected $fillable = ['nome'];
-}
 
+
+     public function temporada()
+    {
+            return $this->hasMany(Temporada::class);
+    }
+
+
+}
