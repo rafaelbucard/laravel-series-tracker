@@ -2,7 +2,7 @@
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
-
+use Illuminate\Database\QueryException;
 /*
 |--------------------------------------------------------------------------
 | API Routes
