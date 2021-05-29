@@ -39,7 +39,7 @@ class SeriesController extends Controller
     );
         return redirect()->route( route: 'listar_series');
     }
-
+    
     public function destroy(Request $request ,$id) 
     {
         Serie::destroy($id);
