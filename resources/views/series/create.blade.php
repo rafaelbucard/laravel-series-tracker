@@ -1,5 +1,5 @@
-@extends('layout')
-
+<x-layout title="Series">
+</x-layout>
 @section('cabecalho')
 Adicionar série
 @endsection
