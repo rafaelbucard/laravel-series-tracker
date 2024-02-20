@@ -43,6 +43,7 @@ class SeriesController extends Controller
     public function update($id, Request $request)
     {
         $novoNome = $request->nome;
+
         $serie = Serie::find($id);
         $serie->nome = $novoNome;
         $serie->save();

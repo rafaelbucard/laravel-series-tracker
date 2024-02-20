@@ -32,6 +32,12 @@ return [
     */
 
     'stores' => [
+        'default' => 'filephp',
+
+        'filephp' => [
+            'driver' => 'file',
+            'path' => storage_path('framework/cache/data'),
+        ],
 
         'apc' => [
             'driver' => 'apc',
