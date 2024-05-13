@@ -1,10 +1,4 @@
-<x-layout title="Series">
-</x-layout>
-@section('cabecalho')
-Adicionar série
-@endsection
-
-@section('conteudo')
+<x-layout title="Nova Serie">
 @if ($errors->any())
     <div class="alert alert-danger">
         <ul>
@@ -35,4 +29,4 @@ Adicionar série
         </div>  
         <button class="btn btn-primary mt-2">Adicionar</button>
     </form>
-@endsection
+</x-layout>
