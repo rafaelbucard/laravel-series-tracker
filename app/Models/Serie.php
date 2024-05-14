@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Serie extends Model
 {
     use HasFactory;
-    public  $timestamps = false;
+    public  $timestamps = true;
     protected $fillable = ['nome'];
 
 

@@ -8,21 +8,21 @@
         </ul>
     </div>
 @endif
-    <form method="post">
+    <form action={{route('series.store')}} method="post">
         @csrf
         <div class="row">
             <div class="col col-8">
-                <label for="nome">Nome</label>
+                <label for="nome"class="form-label">Nome:</label>
                 <input type="text" class="form-control" name="nome" id="nome">
 
             </div>
             <div class="col col-2">
-                <label for="qtd_temporada">Temporadas</label>
+                <label for="qtd_temporada" class="form-label">Temporadas:</label>
                 <input type="number" class="form-control" name="qtd_temporadas" id="nome">
 
             </div>
             <div class="col col-2">
-                <label for="qtd_episodios">Episódios</label>
+                <label for="qtd_episodios" class="form-label">Episódios:</label>
                 <input type="number" class="form-control" name="qtd_episodios" id="nome">
 
             </div>

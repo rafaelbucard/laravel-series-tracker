@@ -10,7 +10,9 @@
     <script src="{{ asset('js/app.js') }}" defer></script>
 </head>
 <body>
-    <h1>{{$title}}</h1>    
-    {{$slot}} 
+    <div class="container">
+        <h1>{{$title}}</h1>    
+        {{$slot}} 
+    </div>
 </body>
 </html>

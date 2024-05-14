@@ -8,7 +8,9 @@ class CriadorDeSerie
 {
     public function criarSerie($nomeSerie, $qtdTemporada, $epPorTemporada) {
 
-        $serie = Serie::create(['nome' => $nomeSerie]);
+        $serie = new Serie;
+        $serie->nome = $nomeSerie;
+        $serie->saveOrFail();
         $qtdTemporadas = $qtdTemporada;
         for ($i = 1; $i <= $qtdTemporadas; $i++) {
              $temporada = $serie->temporadas()->create(['numero' => $i]);
