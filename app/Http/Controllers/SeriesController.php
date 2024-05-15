@@ -14,8 +14,7 @@ class SeriesController extends Controller
     public function index(Request $request) 
     {
         $series = Serie::query()->orderBy('nome')->get();
-        $mensagem = $request->session()->get('mensagem');
-            
+        $mensagem = $request->session()->get('mensagem.sucesso');
         return view('series.index', compact('series', 'mensagem'));
     }
 
@@ -33,8 +32,8 @@ class SeriesController extends Controller
         );
 
         $request->session()->flash(
-            'mensagem',
-            "Serie {$serie->id},temporadas e EP foram criados com sucesso : {$serie->nome}"
+            'mensagem.sucesso',
+            "Série, temporadas e episódios foram criados com sucesso : {$serie->nome}"
 
     );
         return redirect()->route('series.index');
@@ -49,12 +48,13 @@ class SeriesController extends Controller
         $serie->save();
     }
     
-    public function destroy(Request $request ,$id) 
+    public function destroy(Request $request , $id) 
     {
+        $serie = Serie::where('id',$id)->first();
         Serie::destroy($id);
         $request->session()->flash(
-            'mensagem',
-            "Serie {$id} Deletada"
+            'mensagem.sucesso',
+            "O seriado, {$serie->nome} removido com sucesso!"
         );
         return redirect()->route( 'series.index');
     }
