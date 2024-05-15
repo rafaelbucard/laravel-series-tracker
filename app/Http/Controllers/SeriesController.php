@@ -37,7 +37,7 @@ class SeriesController extends Controller
             "Serie {$serie->id},temporadas e EP foram criados com sucesso : {$serie->nome}"
 
     );
-        return redirect()->route( 'series.index');
+        return redirect()->route('series.index');
     }
 
     public function update($id, Request $request)
@@ -56,7 +56,7 @@ class SeriesController extends Controller
             'mensagem',
             "Serie {$id} Deletada"
         );
-        return redirect()->route( route: 'listar_series');
+        return redirect()->route( 'series.index');
     }
 
 }
