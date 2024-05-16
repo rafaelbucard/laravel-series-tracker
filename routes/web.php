@@ -19,6 +19,7 @@ use App\Http\Controllers\EpisodiosController;
 Route::get('/', function () {
     return redirect('/series');
 });
-Route::resource('/series', SeriesController::class)->only(['index','create','store','destroy']);
+Route::resource('/series', SeriesController::class)->except(['show']);
 Route::get('/series/{serieId}/temporadas', [TemporadasController::class,'index']);
+//Route::get('/series/update-serie/{series}', [SeriesController::class,'edit'])->name('series.update');
 Route::get('/temporadas/{idTemporadas}/episodios', [EpisodiosController::class,'index']);
