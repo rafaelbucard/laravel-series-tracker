@@ -21,6 +21,8 @@ class CreateEpisodiosTable extends Migration
             $table->foreign('temporada_id')
             ->references('id')
             ->on('temporadas')->onDelete('cascade');
+            $table->timestamps();
+
     });
     }
 

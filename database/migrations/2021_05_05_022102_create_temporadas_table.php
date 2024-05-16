@@ -22,7 +22,10 @@ class CreateTemporadasTable extends Migration
             $table->foreign('serie_id')
                 ->references('id')
                 ->on('series')->onDelete('cascade');
+            $table->timestamps();
+
         });
+
     }
 
     /**

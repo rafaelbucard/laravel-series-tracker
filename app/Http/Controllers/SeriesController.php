@@ -14,8 +14,7 @@ class SeriesController extends Controller
     public function index(Request $request) 
     {
         $series = Serie::query()->orderBy('nome')->get();
-        $mensagem = $request->session()->get('mensagem');
-            
+        $mensagem = $request->session()->get('mensagem.sucesso');
         return view('series.index', compact('series', 'mensagem'));
     }
 
@@ -23,6 +22,12 @@ class SeriesController extends Controller
     {
         return view('series.create');
     }
+
+    public function edit(Serie $series) 
+    {
+        return view('series.update')->with('serie',$series);
+    }
+
 
     public function store(SeriesFormRequest $request,CriadorDeSerie $criadorDeSerie)  
     {
@@ -32,31 +37,25 @@ class SeriesController extends Controller
             $request->qtd_episodios
         );
 
-        $request->session()->flash(
-            'mensagem',
-            "Serie {$serie->id},temporadas e EP foram criados com sucesso : {$serie->nome}"
-
-    );
-        return redirect()->route('series.index');
+        return redirect()->route('series.index')->with( 'mensagem.sucesso',
+        "Série, temporadas e episódios foram criados com sucesso : {$serie->nome}");
     }
 
-    public function update($id, Request $request)
+    public function update(Serie $series, SeriesFormRequest $request)
     {
         $novoNome = $request->nome;
 
-        $serie = Serie::find($id);
-        $serie->nome = $novoNome;
-        $serie->save();
+        $series->nome = $novoNome;
+        $series->saveOrFail();
+        return redirect()->route('series.index')->with( 'mensagem.sucesso',
+        "Série atualizada com sucesso : {$novoNome}");
     }
     
-    public function destroy(Request $request ,$id) 
+    public function destroy(Serie $series) 
     {
-        Serie::destroy($id);
-        $request->session()->flash(
-            'mensagem',
-            "Serie {$id} Deletada"
-        );
-        return redirect()->route( 'series.index');
+        $series->delete();
+        return redirect()->route( 'series.index')->with( 'mensagem.sucesso',
+        "O seriado, {$series->nome} removido com sucesso!");
     }
 
 }
