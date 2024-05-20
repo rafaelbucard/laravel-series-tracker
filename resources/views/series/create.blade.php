@@ -12,18 +12,18 @@
         @csrf
         <div class="row">
             <div class="col col-8">
-                <label for="nome"class="form-label">Nome:</label>
-                <input type="text" class="form-control" name="nome" id="nome">
+                <label for="name"class="form-label">Nome:</label>
+                <input type="text" class="form-control" name="name" id="name">
 
             </div>
             <div class="col col-2">
-                <label for="qtd_temporada" class="form-label">Temporadas:</label>
-                <input type="number" class="form-control" name="qtd_temporadas" id="nome">
+                <label for="qt_seasons" class="form-label">Temporadas:</label>
+                <input type="number" class="form-control" name="qt_seasons" id="qt_seasons">
 
             </div>
             <div class="col col-2">
-                <label for="qtd_episodios" class="form-label">Episódios:</label>
-                <input type="number" class="form-control" name="qtd_episodios" id="nome">
+                <label for="qt_episodes" class="form-label">Episódios:</label>
+                <input type="number" class="form-control" name="qt_episodes" id="qt_episodes">
 
             </div>
         </div>  

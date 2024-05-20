@@ -8,13 +8,13 @@
         </ul>
     </div>
 @endif
-    <form action={{route('series.update', $serie->id)}} method="post">
+    <form action={{route('series.update', $series->id)}} method="post">
         @csrf
         @method('PUT')
         <div class="row">
             <div class="col col-8">
-                <label for="nome" class="form-label">Nome:</label>
-                <input type="text" class="form-control" name="nome" id="nome" value="{{$serie->nome}}">
+                <label for="name" class="form-label">Nome:</label>
+                <input type="text" class="form-control" name="name" id="nome" value="{{$series->name}}">
             </div>
         </div>  
         <button class="btn btn-primary mt-2">Confirmar</button>
