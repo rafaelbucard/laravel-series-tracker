@@ -5,7 +5,7 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\QueryException;
 
-class CreateTemporadasTable extends Migration
+class CreateSeasonsTable extends Migration
 {
     /**
      * Run the migrations.
@@ -14,12 +14,12 @@ class CreateTemporadasTable extends Migration
      */
     public function up()
     {
-        Schema::create('temporadas', function (Blueprint $table) {
+        Schema::create('seasons', function (Blueprint $table) {
             $table->bigIncrements('id');
-            $table->integer('numero');
-            $table->unsignedBigInteger('serie_id');
+            $table->integer('number');
+            $table->unsignedBigInteger('series_id');
 
-            $table->foreign('serie_id')
+            $table->foreign('series_id')
                 ->references('id')
                 ->on('series')->onDelete('cascade');
             $table->timestamps();
@@ -35,6 +35,6 @@ class CreateTemporadasTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('temporadas');
+        Schema::dropIfExists('seasons');
     }
 }
