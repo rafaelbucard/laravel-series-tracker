@@ -8,6 +8,11 @@
         </ul>
     </div>
 @endif
+@isset($error)
+<div class="alert alert-danger">
+    {{$error}}
+</div>
+@endisset
     <form action={{route('series.store')}} method="post">
         @csrf
         <div class="row">

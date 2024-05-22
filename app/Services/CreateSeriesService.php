@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Handlers;
+namespace App\Services;
 
 use App\Models\Series;
 
