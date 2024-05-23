@@ -3,13 +3,12 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\Temporada;
-use App\Models\Episodio;
+use App\Models\Season;
 
 class EpisodiosController extends Controller
 {
     public function index($idTemporada) {
-        $temporada = Temporada::find($idTemporada);
+        $temporada = Season::find($idTemporada);
         $episodios = $temporada->episodios;
 
         return view('episodios.index',compact('episodios'));

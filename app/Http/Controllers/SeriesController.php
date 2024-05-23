@@ -4,18 +4,23 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\SeriesFormRequest;
 use App\Models\Series;
-use App\Services\CreateSeriesService; 
+use App\Repositories\CreateSeriesRepository;
+use App\Repositories\SeriesRepository;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class SeriesController extends Controller
 {
+    public function __construct(private SeriesRepository $CreateSeriesRepository) {
+        $this->CreateSeriesRepository = $CreateSeriesRepository;
+    }
 
     public function index(Request $request) 
     {
         $series = Series::query()->orderBy('name')->get();
         $menssage = $request->session()->get('menssage.success');
+
         return view('series.index', compact('series', 'menssage'));
     }
 
@@ -30,12 +35,12 @@ class SeriesController extends Controller
     }
 
 
-    public function store(SeriesFormRequest $request,CreateSeriesService $CreateSeriesService)  
+    public function store(SeriesFormRequest $request)  
     {
         try {
             
             DB::beginTransaction();
-            $series = $CreateSeriesService->execute(
+            $series = $this->CreateSeriesRepository->add(
                 $request->name, 
                 $request->qt_seasons,
                 $request->qt_episodes
@@ -44,11 +49,13 @@ class SeriesController extends Controller
 
             return redirect()->route('series.index')->with( 'menssage.success',
             "Série, temporadas e episódios foram criados com sucesso : {$series->name}");
+
         } catch (\Exception $e) {
 
             DB::rollBack();
             Log::error($e->getMessage());
             $error = 'Houve um erro ao criar a série: entre em contato com o suporte';
+
             return view('series.create')->with('error',$error);
         }
        
@@ -60,6 +67,7 @@ class SeriesController extends Controller
 
         $series->name = $newName;
         $series->saveOrFail();
+
         return redirect()->route('series.index')->with( 'menssage.success',
         "Série atualizada com sucesso : {$newName}");
     }
@@ -67,6 +75,7 @@ class SeriesController extends Controller
     public function destroy(Series$series) 
     {
         $series->delete();
+
         return redirect()->route( 'series.index')->with( 'menssage.success',
         "O seriado, {$series->nome} removido com sucesso!");
     }

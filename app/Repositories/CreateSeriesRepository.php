@@ -1,12 +1,13 @@
 <?php
 
-namespace App\Services;
+namespace App\Repositories;
 
 use App\Models\Series;
 
-class CreateSeriesService
+class CreateSeriesRepository implements SeriesRepository
 {
-    public function execute($name, $qtSeason, $epBySeason) {
+    public function add($name, $qtSeason, $epBySeason) : Series
+    {
 
         $series= new Series;
         $series->name = $name;
