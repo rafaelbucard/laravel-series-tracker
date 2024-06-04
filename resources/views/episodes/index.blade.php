@@ -1,6 +1,7 @@
 
-<x-layout title="Episódios">
-    <a href={{route('seasons.index')}} class="btn btn-dark mt-2 mb-2">Voltar</a>
+<x-layout title="Episódios" :menssage="$menssage">
+    <a href={{route('series.index')}} class="btn btn-dark mt-2 mb-2">Voltar</a>
+   
     <form method="POST" action="">
         @csrf
         <ul class="list-group">
