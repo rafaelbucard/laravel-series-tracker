@@ -11,7 +11,12 @@
 </head>
 <body>
     <div class="container">
-        <h1>{{$title}}</h1>    
+        <h1>{{$title}}</h1>  
+        @isset($menssage)
+        <div class="alert alert-success">
+            {{$menssage}}
+        </div>
+        @endisset  
         {{$slot}} 
     </div>
 </body>
