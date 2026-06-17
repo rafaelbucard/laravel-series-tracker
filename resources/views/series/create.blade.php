@@ -76,8 +76,9 @@
                 </div>
 
                 <div>
-                    <x-input-label for="qt_episodes" :value="'Episódios por temporada'" />
+                    <x-input-label for="qt_episodes" :value="'Média de episódios por temporada'" />
                     <x-text-input id="qt_episodes" name="qt_episodes" type="number" min="1" max="500" class="mt-1 block w-full" :value="old('qt_episodes', 10)" required />
+                    <p class="mt-1 text-xs text-slate-500">Aplicado a todas as temporadas. Você pode ajustar cada temporada depois, ao editar a série.</p>
                     <x-input-error :messages="$errors->get('qt_episodes')" class="mt-1" />
                 </div>
 

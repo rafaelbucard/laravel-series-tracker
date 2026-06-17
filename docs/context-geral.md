@@ -94,7 +94,7 @@ Drivers padrão: **sessão, cache e fila no banco de dados** (tabelas criadas pe
 
 | Service | Função |
 |---------|--------|
-| `SeriesService` | Cria série dentro de transação, gerando N temporadas × M episódios; trata capa (upload/URL); atualiza e deleta (removendo a capa do storage). |
+| `SeriesService` | Cria série dentro de transação, gerando N temporadas × M episódios (M é apenas a média informada no cadastro); trata capa (upload/URL); atualiza e deleta (removendo a capa do storage). `syncSeasons()`: reconcilia as temporadas na edição — cria/remove temporadas, renumera em sequência e ajusta a quantidade de episódios de cada uma (ao diminuir, remove os de número mais alto). |
 | `EpisodeService` | `syncWatched()`: marca em massa os episódios de uma temporada como assistidos/não-assistidos a partir de uma lista de IDs (numa transação). |
 | `DashboardService` | `statsFor()`: agrega totais, separa séries em progresso/concluídas, calcula "continue assistindo" (próximo episódio não assistido) e atividade recente (últimos episódios marcados). |
 | `TopicService` | Lista tópicos paginados com filtros (`series_id`, ordenação por recentes/mais comentados) e cria tópicos. |
@@ -114,6 +114,7 @@ Drivers padrão: **sessão, cache e fila no banco de dados** (tabelas criadas pe
 | GET | `/series/omdb/search` | Busca OMDB (JSON) para autocompletar |
 | resource | `/series` (exceto `show`) | CRUD de séries |
 | GET | `/series/{series}/seasons` | Lista temporadas |
+| PUT | `/series/{series}/seasons` | Sincroniza temporadas/episódios (edição) |
 | GET | `/seasons/{season}/episodes` | Lista episódios |
 | POST | `/seasons/{season}/episodes` | Atualiza episódios assistidos |
 | GET/resource | `/community`, `/community/topics` | Fórum: lista/cria/mostra tópicos |
@@ -195,7 +196,7 @@ tests/                      # Feature/ (Pest) + Unit/
 
 ## 12. Fluxos de uso (resumo)
 
-1. **Cadastrar série** → escolhe streaming, informa nº de temporadas/episódios → o `SeriesService` cria tudo numa transação → capa via OMDB/upload/URL.
+1. **Cadastrar série** → escolhe streaming, informa nº de temporadas e a **média** de episódios por temporada → o `SeriesService` cria tudo numa transação → capa via OMDB/upload/URL. As temporadas e a quantidade de episódios de cada uma podem ser ajustadas depois na **edição da série** (seção "Temporadas").
 2. **Assistir** → abre temporada → marca episódios → `EpisodeService.syncWatched` atualiza em massa → progresso recalculado.
 3. **Acompanhar** → `Dashboard` mostra progresso, "continue assistindo" (próximo episódio) e atividade recente.
 4. **Comunidade** → cria tópico (opcionalmente ligado a uma série) → outros comentam/respondem (1 nível).

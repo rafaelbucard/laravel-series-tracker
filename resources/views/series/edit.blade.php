@@ -59,5 +59,70 @@
                 <x-gradient-button>Salvar</x-gradient-button>
             </div>
         </form>
+
+        <form action="{{ route('seasons.sync', $series) }}" method="POST"
+              x-data="seasonsManager({{ $series->seasons->map(fn ($s) => ['id' => $s->id, 'episodes' => $s->episodes_count])->values()->toJson() }})"
+              class="mt-6 bg-white rounded-xl border border-slate-200 shadow-sm p-6 space-y-4">
+            @csrf @method('PUT')
+
+            <div>
+                <h2 class="text-lg font-bold text-slate-900">Temporadas</h2>
+                <p class="text-sm text-slate-500">Adicione ou remova temporadas e ajuste quantos episódios cada uma tem. Ao diminuir, os episódios de número mais alto são removidos.</p>
+            </div>
+
+            @if ($errors->seasons->any())
+                <div class="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                    <ul class="list-disc list-inside space-y-1">
+                        @foreach ($errors->seasons->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <div class="space-y-2">
+                <template x-for="(season, index) in seasons" :key="index">
+                    <div class="flex items-center gap-3 rounded-lg border border-slate-200 p-3">
+                        <input type="hidden" :name="`seasons[${index}][id]`" :value="season.id">
+                        <span class="font-semibold text-slate-700 w-28">Temporada <span x-text="index + 1"></span></span>
+                        <div class="flex-1">
+                            <label class="block text-xs text-slate-500 mb-1">Episódios</label>
+                            <input type="number" min="1" max="500" x-model.number="season.episodes"
+                                   :name="`seasons[${index}][episodes]`"
+                                   class="block w-full rounded-lg border-slate-300 focus:border-brand-blue focus:ring-brand-blue">
+                        </div>
+                        <button type="button" @click="remove(index)" x-show="seasons.length > 1"
+                                class="self-end rounded-lg border border-red-200 px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-50">
+                            Remover
+                        </button>
+                    </div>
+                </template>
+            </div>
+
+            <div class="flex items-center justify-between gap-3 pt-4 border-t border-slate-100">
+                <button type="button" @click="add()"
+                        class="rounded-lg border border-brand-mid/30 px-4 py-2 text-sm font-semibold text-brand-mid hover:bg-brand-gradient-soft">
+                    + Adicionar temporada
+                </button>
+                <x-gradient-button>Salvar temporadas</x-gradient-button>
+            </div>
+        </form>
     </div>
+
+    <script>
+        function seasonsManager(initial) {
+            return {
+                seasons: initial.length ? initial : [{ id: null, episodes: 10 }],
+                add() {
+                    this.seasons.push({ id: null, episodes: 10 });
+                },
+                remove(index) {
+                    if (! confirm(`Remover a Temporada ${index + 1}? Todos os episódios dela serão excluídos ao salvar.`)) {
+                        return;
+                    }
+                    this.seasons.splice(index, 1);
+                },
+            }
+        }
+    </script>
 </x-app-layout>
