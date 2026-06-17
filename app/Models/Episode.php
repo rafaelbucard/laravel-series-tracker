@@ -2,24 +2,26 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Episode extends Model
 {
     use HasFactory;
-    public  $timestamps = true;
-    protected $fillable = ['number', 'watched'];
 
-    public function serie()
+    protected $fillable = ['season_id', 'number', 'watched'];
+
+    protected function casts(): array
     {
-    return $this->belongsTo(Series::class);
+        return [
+            'number' => 'integer',
+            'watched' => 'boolean',
+        ];
     }
-    public function temporada()
+
+    public function season(): BelongsTo
     {
-    return $this->belongsTo(Season::class);
+        return $this->belongsTo(Season::class);
     }
-   
 }

@@ -2,82 +2,122 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\SeriesFormRequest;
+use App\Http\Requests\StoreSeriesRequest;
+use App\Http\Requests\UpdateSeriesRequest;
 use App\Models\Series;
-use App\Repositories\CreateSeriesRepository;
-use App\Repositories\SeriesRepository;
+use App\Models\StreamingService;
+use App\Services\External\OmdbClient;
+use App\Services\SeriesService;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\View\View;
 
 class SeriesController extends Controller
 {
-    public function __construct(private SeriesRepository $CreateSeriesRepository) {
-        $this->CreateSeriesRepository = $CreateSeriesRepository;
+    public function __construct(
+        private readonly SeriesService $seriesService,
+        private readonly OmdbClient $omdb,
+    ) {
+        //
     }
 
-    public function index(Request $request) 
+    public function index(Request $request): View
     {
-        $series = Series::query()->orderBy('name')->get();
-        $menssage = $request->session()->get('menssage.success');
+        $series = $request->user()
+            ->series()
+            ->with('streamingService')
+            ->withCount(['seasons', 'episodes as episodes_total', 'episodes as episodes_watched' => function ($q) {
+                $q->where('watched', true);
+            }])
+            ->orderBy('name')
+            ->get();
 
-        return view('series.index', compact('series', 'menssage'));
+        return view('series.index', [
+            'series' => $series,
+        ]);
     }
 
-    public function create() 
+    public function create(): View
     {
-        return view('series.create');
+        return view('series.create', [
+            'streamingServices' => StreamingService::orderBy('name')->get(),
+            'omdbConfigured' => $this->omdb->isConfigured(),
+        ]);
     }
 
-    public function edit(Series $series) 
-    {
-        return view('series.update')->with('series',$series);
-    }
-
-
-    public function store(SeriesFormRequest $request)  
+    public function store(StoreSeriesRequest $request): RedirectResponse
     {
         try {
-            
-            DB::beginTransaction();
-            $series = $this->CreateSeriesRepository->add(
-                $request->name, 
-                $request->qt_seasons,
-                $request->qt_episodes
-            );
-            DB::commit();
+            $data = $request->validated();
+            $data['cover_file'] = $request->file('cover_file');
 
-            return redirect()->route('series.index')->with( 'menssage.success',
-            "Série, temporadas e episódios foram criados com sucesso : {$series->name}");
+            $series = $this->seriesService->create($request->user(), $data);
 
-        } catch (\Exception $e) {
+            return redirect()
+                ->route('series.index')
+                ->with('status', "Série criada com sucesso: {$series->name}");
+        } catch (\Throwable $e) {
+            Log::error('Failed to create series', ['error' => $e->getMessage()]);
 
-            DB::rollBack();
-            Log::error($e->getMessage());
-            $error = 'Houve um erro ao criar a série: entre em contato com o suporte';
-
-            return view('series.create')->with('error',$error);
+            return back()
+                ->withInput()
+                ->with('error', 'Houve um erro ao criar a série. Tente novamente.');
         }
-       
     }
 
-    public function update(Series $series, SeriesFormRequest $request)
+    public function edit(Series $series): View
     {
-        $newName = $request->name;
+        $this->authorize('update', $series);
 
-        $series->name = $newName;
-        $series->saveOrFail();
-
-        return redirect()->route('series.index')->with( 'menssage.success',
-        "Série atualizada com sucesso : {$newName}");
+        return view('series.edit', [
+            'series' => $series,
+            'streamingServices' => StreamingService::orderBy('name')->get(),
+            'omdbConfigured' => $this->omdb->isConfigured(),
+        ]);
     }
-    
-    public function destroy(Series$series) 
+
+    public function update(UpdateSeriesRequest $request, Series $series): RedirectResponse
     {
-        $series->delete();
+        $this->authorize('update', $series);
 
-        return redirect()->route( 'series.index')->with( 'menssage.success',
-        "O seriado, {$series->nome} removido com sucesso!");
+        $data = $request->validated();
+        $data['cover_file'] = $request->file('cover_file');
+
+        $this->seriesService->update($series, $data);
+
+        return redirect()
+            ->route('series.index')
+            ->with('status', "Série atualizada: {$series->fresh()->name}");
     }
 
+    public function destroy(Series $series): RedirectResponse
+    {
+        $this->authorize('delete', $series);
+
+        $name = $series->name;
+        $this->seriesService->delete($series);
+
+        return redirect()
+            ->route('series.index')
+            ->with('status', "Série removida: {$name}");
+    }
+
+    public function omdbSearch(Request $request): JsonResponse
+    {
+        $query = (string) $request->query('q', '');
+
+        if (! $this->omdb->isConfigured()) {
+            return response()->json([
+                'configured' => false,
+                'results' => [],
+            ]);
+        }
+
+        return response()->json([
+            'configured' => true,
+            'results' => $this->omdb->searchByTitle($query),
+        ]);
+    }
 }

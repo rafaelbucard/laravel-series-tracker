@@ -2,43 +2,42 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Episode;
-use Illuminate\Http\Request;
 use App\Models\Season;
-use Illuminate\Support\Facades\DB;
+use App\Services\EpisodeService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\View\View;
 
 class EpisodesController extends Controller
 {
-    public function index(Season $season) 
-    {
-        return view('episodes.index',[
-            'episodes' => $season->episodes,
-            'menssage' => null
-        ]);
-       
+    public function __construct(
+        private readonly EpisodeService $episodes,
+    ) {
+        //
     }
 
-    public function update(Request $request, Season $season) 
+    public function index(Season $season): View
     {
-        if(!is_null($request->episodes)){
-            DB::beginTransaction();
-            $watched = $request->episodes;
-            $season->episodes->each(function (Episode $episode) use ($watched) {
-            $episode->watched = in_array($episode->id, $watched);
-            });
-            $season->push();
-            DB::commit();
-        } else {
-            DB::beginTransaction();
-            $watched = $request->episodes;
-            $season->episodes->each(function (Episode $episode) use ($watched) {
-            $episode->watched = false;
-            });
-            $season->push();
-            DB::commit();
-        }
+        $this->authorize('view', $season->series);
 
-        return view('episodes.index',['episodes' => $season->episodes])->with('menssage' , 'Episódios marcados com sucesso!');
+        $season->load('episodes', 'series');
 
+        return view('episodes.index', [
+            'season' => $season,
+            'episodes' => $season->episodes,
+        ]);
+    }
+
+    public function update(Request $request, Season $season): RedirectResponse
+    {
+        $this->authorize('update', $season->series);
+
+        $watchedIds = (array) $request->input('episodes', []);
+
+        $this->episodes->syncWatched($season, $watchedIds);
+
+        return redirect()
+            ->route('episodes.index', $season)
+            ->with('status', 'Episódios atualizados com sucesso!');
     }
 }
