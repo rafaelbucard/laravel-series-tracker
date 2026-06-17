@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+    .text-brand-gradient {
+        background: linear-gradient(135deg, #dc2626 0%, #a21caf 50%, #2563eb 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
+
+    .bg-brand-gradient {
+        background: linear-gradient(135deg, #dc2626 0%, #a21caf 50%, #2563eb 100%);
+    }
+
+    .bg-brand-gradient-soft {
+        background: linear-gradient(135deg, #fee2e2 0%, #ede9fe 50%, #dbeafe 100%);
+    }
+}
