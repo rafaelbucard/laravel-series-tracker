@@ -26,6 +26,7 @@ Route::middleware('auth')->group(function () {
 
     // Seasons & Episodes
     Route::get('/series/{series}/seasons', [SeasonsController::class, 'index'])->name('seasons.index');
+    Route::put('/series/{series}/seasons', [SeasonsController::class, 'sync'])->name('seasons.sync');
     Route::get('/seasons/{season}/episodes', [EpisodesController::class, 'index'])->name('episodes.index');
     Route::post('/seasons/{season}/episodes', [EpisodesController::class, 'update'])->name('episodes.update');
 
