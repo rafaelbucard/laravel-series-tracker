@@ -8,8 +8,6 @@ Aplicação Laravel 12 (PHP 8.2+) para rastrear séries, temporadas e episódios
 - **Comunidade / fórum** com tópicos e comentários (1 nível de threading)
 - **Perfis públicos** de usuário com avatar, bio e suas séries
 - **Service Layer** dedicado em `app/Services/`
-- **Tema visual** com degradê vermelho → azul
-
 Stack: Laravel 12, Breeze (Blade), Tailwind 3, Vite, Pest 3, MySQL 8 (via Sail).
 
 ## Setup com Laravel Sail (Docker)
