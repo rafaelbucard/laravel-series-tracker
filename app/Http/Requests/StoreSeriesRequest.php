@@ -49,7 +49,7 @@ class StoreSeriesRequest extends FormRequest
             'year' => 'ano',
             'imdb_id' => 'ID do IMDB',
             'qt_seasons' => 'quantidade de temporadas',
-            'qt_episodes' => 'episódios por temporada',
+            'qt_episodes' => 'média de episódios por temporada',
             'cover_file' => 'capa',
             'cover_url' => 'URL da capa',
         ];

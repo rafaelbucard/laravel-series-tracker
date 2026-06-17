@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\Season;
 use App\Models\Series;
 use App\Models\User;
 use Illuminate\Http\UploadedFile;
@@ -129,5 +130,86 @@ class SeriesService
             $this->imageService->delete($series->cover_path);
             $series->delete();
         });
+    }
+
+    /**
+     * Reconcile the seasons (and their episode counts) of a series.
+     *
+     * Existing seasons are matched by id; missing ones are deleted, new ones
+     * (without id) are created. Seasons are renumbered sequentially (1..N).
+     * Episode counts grow by appending new episodes and shrink by removing the
+     * highest-numbered ones (even when watched).
+     *
+     * @param  array<int, array{id?: int|null, episodes: int}>  $seasons
+     */
+    public function syncSeasons(Series $series, array $seasons): void
+    {
+        DB::transaction(function () use ($series, $seasons) {
+            $existing = $series->seasons()->get()->keyBy('id');
+
+            $keptIds = collect($seasons)
+                ->pluck('id')
+                ->filter()
+                ->map(fn ($id) => (int) $id)
+                ->all();
+
+            $series->seasons()
+                ->whereNotIn('id', $keptIds)
+                ->get()
+                ->each(fn (Season $season) => $season->delete());
+
+            $number = 0;
+            foreach ($seasons as $row) {
+                $number++;
+                $episodes = max(1, (int) ($row['episodes'] ?? 1));
+                $id = ! empty($row['id']) ? (int) $row['id'] : null;
+
+                $season = $id ? $existing->get($id) : null;
+
+                if ($season === null) {
+                    $season = $series->seasons()->create(['number' => $number]);
+                    $this->adjustEpisodeCount($season, 0, $episodes);
+
+                    continue;
+                }
+
+                if ($season->number !== $number) {
+                    $season->update(['number' => $number]);
+                }
+
+                $current = $season->episodes()->count();
+                $this->adjustEpisodeCount($season, $current, $episodes);
+            }
+        });
+    }
+
+    private function adjustEpisodeCount(Season $season, int $current, int $target): void
+    {
+        if ($target > $current) {
+            $maxNumber = (int) ($season->episodes()->max('number') ?? 0);
+
+            $episodes = [];
+            for ($e = $maxNumber + 1; $e <= $maxNumber + ($target - $current); $e++) {
+                $episodes[] = [
+                    'season_id' => $season->id,
+                    'number' => $e,
+                    'watched' => false,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ];
+            }
+            $season->episodes()->insert($episodes);
+
+            return;
+        }
+
+        if ($target < $current) {
+            $idsToRemove = $season->episodes()
+                ->orderByDesc('number')
+                ->limit($current - $target)
+                ->pluck('id');
+
+            $season->episodes()->whereIn('id', $idsToRemove)->delete();
+        }
     }
 }

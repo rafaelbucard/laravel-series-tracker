@@ -71,6 +71,10 @@ class SeriesController extends Controller
     {
         $this->authorize('update', $series);
 
+        $series->load(['seasons' => function ($q) {
+            $q->withCount('episodes')->orderBy('number');
+        }]);
+
         return view('series.edit', [
             'series' => $series,
             'streamingServices' => StreamingService::orderBy('name')->get(),
