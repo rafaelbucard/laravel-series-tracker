@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Season;
+use App\Repositories\Contracts\SeasonRepositoryInterface;
 use App\Services\EpisodeService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -12,6 +13,7 @@ class EpisodesController extends Controller
 {
     public function __construct(
         private readonly EpisodeService $episodes,
+        private readonly SeasonRepositoryInterface $seasons,
     ) {
         //
     }
@@ -20,7 +22,7 @@ class EpisodesController extends Controller
     {
         $this->authorize('view', $season->series);
 
-        $season->load('episodes', 'series');
+        $season = $this->seasons->loadEpisodesAndSeries($season);
 
         return view('episodes.index', [
             'season' => $season,

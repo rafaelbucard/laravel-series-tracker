@@ -5,7 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StoreSeriesRequest;
 use App\Http\Requests\UpdateSeriesRequest;
 use App\Models\Series;
-use App\Models\StreamingService;
+use App\Repositories\Contracts\SeriesRepositoryInterface;
+use App\Repositories\Contracts\StreamingServiceRepositoryInterface;
 use App\Services\External\OmdbClient;
 use App\Services\SeriesService;
 use Illuminate\Http\JsonResponse;
@@ -18,6 +19,8 @@ class SeriesController extends Controller
 {
     public function __construct(
         private readonly SeriesService $seriesService,
+        private readonly SeriesRepositoryInterface $series,
+        private readonly StreamingServiceRepositoryInterface $streamingServices,
         private readonly OmdbClient $omdb,
     ) {
         //
@@ -25,24 +28,15 @@ class SeriesController extends Controller
 
     public function index(Request $request): View
     {
-        $series = $request->user()
-            ->series()
-            ->with('streamingService')
-            ->withCount(['seasons', 'episodes as episodes_total', 'episodes as episodes_watched' => function ($q) {
-                $q->where('watched', true);
-            }])
-            ->orderBy('name')
-            ->get();
-
         return view('series.index', [
-            'series' => $series,
+            'series' => $this->series->listForUserWithCounts($request->user()),
         ]);
     }
 
     public function create(): View
     {
         return view('series.create', [
-            'streamingServices' => StreamingService::orderBy('name')->get(),
+            'streamingServices' => $this->streamingServices->allOrderedByName(),
             'omdbConfigured' => $this->omdb->isConfigured(),
         ]);
     }
@@ -71,13 +65,9 @@ class SeriesController extends Controller
     {
         $this->authorize('update', $series);
 
-        $series->load(['seasons' => function ($q) {
-            $q->withCount('episodes')->orderBy('number');
-        }]);
-
         return view('series.edit', [
-            'series' => $series,
-            'streamingServices' => StreamingService::orderBy('name')->get(),
+            'series' => $this->series->loadSeasonsWithEpisodeCounts($series),
+            'streamingServices' => $this->streamingServices->allOrderedByName(),
             'omdbConfigured' => $this->omdb->isConfigured(),
         ]);
     }

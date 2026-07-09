@@ -4,8 +4,9 @@ namespace App\Http\Controllers\Community;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreTopicRequest;
-use App\Models\Series;
 use App\Models\Topic;
+use App\Repositories\Contracts\SeriesRepositoryInterface;
+use App\Repositories\Contracts\TopicRepositoryInterface;
 use App\Services\TopicService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -15,6 +16,8 @@ class TopicController extends Controller
 {
     public function __construct(
         private readonly TopicService $topics,
+        private readonly TopicRepositoryInterface $topicRepository,
+        private readonly SeriesRepositoryInterface $series,
     ) {
         //
     }
@@ -36,7 +39,7 @@ class TopicController extends Controller
     public function create(Request $request): View
     {
         return view('community.create', [
-            'userSeries' => $request->user()->series()->orderBy('name')->get(['id', 'name']),
+            'userSeries' => $this->series->namesForUser($request->user()),
         ]);
     }
 
@@ -51,15 +54,8 @@ class TopicController extends Controller
 
     public function show(Topic $topic): View
     {
-        $topic->load([
-            'user',
-            'series',
-            'rootComments.user',
-            'rootComments.replies.user',
-        ]);
-
         return view('community.show', [
-            'topic' => $topic,
+            'topic' => $this->topicRepository->loadForShow($topic),
         ]);
     }
 }
