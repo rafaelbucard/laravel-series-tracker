@@ -2,13 +2,21 @@
 
 namespace App\Services;
 
-use App\Models\Episode;
 use App\Models\Series;
 use App\Models\User;
+use App\Repositories\Contracts\EpisodeRepositoryInterface;
+use App\Repositories\Contracts\SeriesRepositoryInterface;
 use Illuminate\Support\Collection;
 
 class DashboardService
 {
+    public function __construct(
+        private readonly SeriesRepositoryInterface $series,
+        private readonly EpisodeRepositoryInterface $episodes,
+    ) {
+        //
+    }
+
     /**
      * @return array{
      *     totals: array{series:int, episodes_total:int, episodes_watched:int, completed_series:int},
@@ -20,11 +28,7 @@ class DashboardService
      */
     public function statsFor(User $user): array
     {
-        $seriesQuery = $user->series()
-            ->with(['streamingService', 'seasons.episodes'])
-            ->orderBy('name');
-
-        $allSeries = $seriesQuery->get();
+        $allSeries = $this->series->listForUserWithSeasons($user);
 
         $totalEpisodes = 0;
         $watchedEpisodes = 0;
@@ -68,7 +72,7 @@ class DashboardService
             'in_progress' => $inProgress->sortByDesc('percent')->values(),
             'completed' => $completed->values(),
             'continue_watching' => $this->continueWatching($inProgress),
-            'recent_activity' => $this->recentActivity($user),
+            'recent_activity' => $this->episodes->recentWatchedForUser($user, 8),
         ];
     }
 
@@ -96,16 +100,5 @@ class DashboardService
                 'next' => $nextEpisode,
             ];
         })->filter(fn ($item) => $item['next'] !== null)->values();
-    }
-
-    private function recentActivity(User $user): Collection
-    {
-        return Episode::query()
-            ->where('watched', true)
-            ->whereHas('season.series', fn ($q) => $q->where('user_id', $user->id))
-            ->with(['season.series'])
-            ->orderByDesc('updated_at')
-            ->limit(8)
-            ->get();
     }
 }

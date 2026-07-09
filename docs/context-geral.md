@@ -26,11 +26,12 @@ Principais capacidades:
 
 ## 2. Arquitetura
 
-O projeto adota uma **camada de serviços (Service Layer)** entre os controllers e os models.
-Os controllers ficam finos: validam (via Form Requests), delegam para services e retornam views/redirects.
+O projeto adota uma **camada de serviços (Service Layer)** e uma **camada de repositórios (Repository Layer)** entre os controllers e os models.
+Os controllers ficam finos: validam (via Form Requests), delegam para services/repositórios e retornam views/redirects.
+Os services concentram regra de negócio e transações; os repositórios concentram todo o acesso ao banco (queries Eloquent).
 
 ```
-Request → Controller → Form Request (validação) → Service (regra de negócio) → Model/Eloquent → DB
+Request → Controller → Form Request (validação) → Service (regra de negócio) → Repository (acesso a dados) → Model/Eloquent → DB
                                                   ↘ Service externo (OMDB) / ImageService (storage)
 ```
 
@@ -41,6 +42,7 @@ Request → Controller → Form Request (validação) → Service (regra de neg�
 | Controllers | `app/Http/Controllers/` | Orquestração HTTP, autorização, retorno de views |
 | Form Requests | `app/Http/Requests/` | Validação e autorização de entrada |
 | Services | `app/Services/` | Regra de negócio, transações, integrações |
+| Repositories | `app/Repositories/` | Acesso ao banco (queries Eloquent); contratos em `Contracts/`, implementações em `Eloquent/`, ligados por `RepositoryServiceProvider` |
 | Models | `app/Models/` | Entidades Eloquent e relacionamentos |
 | Policies | `app/Policies/` | Autorização por recurso (ownership) |
 | Views | `resources/views/` | Blade + componentes + Tailwind |
@@ -180,7 +182,8 @@ app/
 │   └── Requests/           # Validação: Series, Topic, Comment, Profile, Auth/Login
 ├── Models/                 # User, Series, Season, Episode, StreamingService, Topic, Comment
 ├── Policies/               # SeriesPolicy (ownership)
-├── Providers/              # AppServiceProvider (Gate::policy, Vite::useBuildDirectory)
+├── Providers/              # AppServiceProvider (Gate::policy, Vite::useBuildDirectory), RepositoryServiceProvider (bindings)
+├── Repositories/           # Contracts/ (interfaces) + Eloquent/ (implementações): Series, Season, Episode, Topic, Comment, StreamingService, User
 └── Services/               # SeriesService, EpisodeService, DashboardService,
                             # TopicService, CommentService, ImageService, External/OmdbClient
 database/

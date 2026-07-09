@@ -5,9 +5,16 @@ namespace App\Services;
 use App\Models\Comment;
 use App\Models\Topic;
 use App\Models\User;
+use App\Repositories\Contracts\CommentRepositoryInterface;
 
 class CommentService
 {
+    public function __construct(
+        private readonly CommentRepositoryInterface $comments,
+    ) {
+        //
+    }
+
     /**
      * @param  array{body:string, parent_id?:int|null}  $data
      */
@@ -17,7 +24,7 @@ class CommentService
 
         // MVP keeps replies at a single level: replies to replies attach to root.
         if ($parentId) {
-            $parent = Comment::query()->where('topic_id', $topic->id)->find($parentId);
+            $parent = $this->comments->findInTopic($topic, (int) $parentId);
 
             if (! $parent) {
                 $parentId = null;
@@ -26,7 +33,7 @@ class CommentService
             }
         }
 
-        return $topic->comments()->create([
+        return $this->comments->createForTopic($topic, [
             'user_id' => $user->id,
             'parent_id' => $parentId,
             'body' => $data['body'],

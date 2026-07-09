@@ -3,10 +3,17 @@
 namespace App\Services;
 
 use App\Models\Season;
+use App\Repositories\Contracts\EpisodeRepositoryInterface;
 use Illuminate\Support\Facades\DB;
 
 class EpisodeService
 {
+    public function __construct(
+        private readonly EpisodeRepositoryInterface $episodes,
+    ) {
+        //
+    }
+
     /**
      * Bulk-update watched flag for all episodes of a season.
      * Episodes whose ids are in $watchedIds become watched=true, the rest false.
@@ -18,13 +25,8 @@ class EpisodeService
         $watchedIds = array_map('intval', $watchedIds);
 
         DB::transaction(function () use ($season, $watchedIds) {
-            $season->episodes()
-                ->whereIn('id', $watchedIds)
-                ->update(['watched' => true, 'updated_at' => now()]);
-
-            $season->episodes()
-                ->whereNotIn('id', $watchedIds)
-                ->update(['watched' => false, 'updated_at' => now()]);
+            $this->episodes->markWatched($season, $watchedIds);
+            $this->episodes->markUnwatched($season, $watchedIds);
         });
     }
 }

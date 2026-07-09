@@ -4,31 +4,23 @@ namespace App\Services;
 
 use App\Models\Topic;
 use App\Models\User;
+use App\Repositories\Contracts\TopicRepositoryInterface;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class TopicService
 {
+    public function __construct(
+        private readonly TopicRepositoryInterface $topics,
+    ) {
+        //
+    }
+
     /**
      * @param  array{series_id?:int|null, sort?:string|null}  $filters
      */
     public function list(array $filters = [], int $perPage = 20): LengthAwarePaginator
     {
-        $query = Topic::query()
-            ->with(['user', 'series'])
-            ->withCount('comments');
-
-        if (! empty($filters['series_id'])) {
-            $query->where('series_id', $filters['series_id']);
-        }
-
-        $sort = $filters['sort'] ?? 'recent';
-
-        match ($sort) {
-            'commented' => $query->orderByDesc('comments_count')->orderByDesc('created_at'),
-            default => $query->orderByDesc('created_at'),
-        };
-
-        return $query->paginate($perPage)->withQueryString();
+        return $this->topics->paginateWithFilters($filters, $perPage);
     }
 
     /**
@@ -36,10 +28,6 @@ class TopicService
      */
     public function create(User $user, array $data): Topic
     {
-        return $user->topics()->create([
-            'title' => $data['title'],
-            'body' => $data['body'],
-            'series_id' => $data['series_id'] ?? null,
-        ]);
+        return $this->topics->createForUser($user, $data);
     }
 }

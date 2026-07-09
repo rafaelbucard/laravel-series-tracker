@@ -5,6 +5,9 @@ namespace App\Services;
 use App\Models\Season;
 use App\Models\Series;
 use App\Models\User;
+use App\Repositories\Contracts\EpisodeRepositoryInterface;
+use App\Repositories\Contracts\SeasonRepositoryInterface;
+use App\Repositories\Contracts\SeriesRepositoryInterface;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 
@@ -12,6 +15,9 @@ class SeriesService
 {
     public function __construct(
         private readonly ImageService $imageService,
+        private readonly SeriesRepositoryInterface $series,
+        private readonly SeasonRepositoryInterface $seasons,
+        private readonly EpisodeRepositoryInterface $episodes,
     ) {
         //
     }
@@ -46,7 +52,7 @@ class SeriesService
                 }
             }
 
-            $series = $user->series()->create([
+            $series = $this->series->createForUser($user, [
                 'streaming_service_id' => $data['streaming_service_id'] ?? null,
                 'name' => $data['name'],
                 'synopsis' => $data['synopsis'] ?? null,
@@ -60,19 +66,8 @@ class SeriesService
             $qtEpisodes = max(1, (int) ($data['qt_episodes'] ?? 1));
 
             for ($s = 1; $s <= $qtSeasons; $s++) {
-                $season = $series->seasons()->create(['number' => $s]);
-
-                $episodes = [];
-                for ($e = 1; $e <= $qtEpisodes; $e++) {
-                    $episodes[] = [
-                        'season_id' => $season->id,
-                        'number' => $e,
-                        'watched' => false,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ];
-                }
-                $season->episodes()->insert($episodes);
+                $season = $this->seasons->createForSeries($series, $s);
+                $this->episodes->bulkInsert($season, $qtEpisodes);
             }
 
             return $series;
@@ -118,9 +113,7 @@ class SeriesService
                 }
             }
 
-            $series->fill($attributes)->save();
-
-            return $series->fresh();
+            return $this->series->update($series, $attributes);
         });
     }
 
@@ -128,7 +121,7 @@ class SeriesService
     {
         DB::transaction(function () use ($series) {
             $this->imageService->delete($series->cover_path);
-            $series->delete();
+            $this->series->delete($series);
         });
     }
 
@@ -145,7 +138,7 @@ class SeriesService
     public function syncSeasons(Series $series, array $seasons): void
     {
         DB::transaction(function () use ($series, $seasons) {
-            $existing = $series->seasons()->get()->keyBy('id');
+            $existing = $this->seasons->getForSeries($series)->keyBy('id');
 
             $keptIds = collect($seasons)
                 ->pluck('id')
@@ -153,10 +146,7 @@ class SeriesService
                 ->map(fn ($id) => (int) $id)
                 ->all();
 
-            $series->seasons()
-                ->whereNotIn('id', $keptIds)
-                ->get()
-                ->each(fn (Season $season) => $season->delete());
+            $this->seasons->deleteMissing($series, $keptIds);
 
             $number = 0;
             foreach ($seasons as $row) {
@@ -167,17 +157,17 @@ class SeriesService
                 $season = $id ? $existing->get($id) : null;
 
                 if ($season === null) {
-                    $season = $series->seasons()->create(['number' => $number]);
-                    $this->adjustEpisodeCount($season, 0, $episodes);
+                    $season = $this->seasons->createForSeries($series, $number);
+                    $this->episodes->bulkInsert($season, $episodes);
 
                     continue;
                 }
 
                 if ($season->number !== $number) {
-                    $season->update(['number' => $number]);
+                    $this->seasons->updateNumber($season, $number);
                 }
 
-                $current = $season->episodes()->count();
+                $current = $this->seasons->countEpisodes($season);
                 $this->adjustEpisodeCount($season, $current, $episodes);
             }
         });
@@ -186,30 +176,13 @@ class SeriesService
     private function adjustEpisodeCount(Season $season, int $current, int $target): void
     {
         if ($target > $current) {
-            $maxNumber = (int) ($season->episodes()->max('number') ?? 0);
-
-            $episodes = [];
-            for ($e = $maxNumber + 1; $e <= $maxNumber + ($target - $current); $e++) {
-                $episodes[] = [
-                    'season_id' => $season->id,
-                    'number' => $e,
-                    'watched' => false,
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
-            }
-            $season->episodes()->insert($episodes);
+            $this->episodes->bulkInsert($season, $target - $current);
 
             return;
         }
 
         if ($target < $current) {
-            $idsToRemove = $season->episodes()
-                ->orderByDesc('number')
-                ->limit($current - $target)
-                ->pluck('id');
-
-            $season->episodes()->whereIn('id', $idsToRemove)->delete();
+            $this->episodes->deleteHighest($season, $current - $target);
         }
     }
 }
